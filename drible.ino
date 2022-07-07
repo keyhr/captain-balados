@@ -6,6 +6,17 @@
 Balados balados;
 String DATA_PREFIX = String("--");
 
+unsigned long curtime = 0, prevtime = 0, rottime = 0;
+
+void rot(unsigned int dly = 200, bool direction = true) {
+    if (curtime - rottime > 1250) {
+        balados.rotate(direction ? 200 : -200);
+        delay(dly);
+        balados.SetSpeed(0, 0);
+        rottime = curtime;
+    }
+}
+
 void setup() {
     M5.begin(true, false, true, true);
     // M5.Power.begin();
@@ -20,7 +31,6 @@ void setup() {
 
     // UnitVとの通信ではPort Cにつなぐ
     Serial2.begin(9600, SERIAL_8N1, 16, 17);
-    Serial.begin(115200);
 }
 
 int i = 0;
@@ -28,7 +38,7 @@ int i = 0;
 void loop() {
     if (i % 5 == 0) {
         // Fireの画面が埋まるのでリセットする
-        M5.Lcd.fillScreen(BLACK);
+        M5.Lcd.fillScreen(CYAN);
         M5.Lcd.setCursor(0, 10);
         i = 0;
     }
@@ -45,21 +55,37 @@ void loop() {
         delay(10);
     }
 
-    unsigned long time = millis();
-    Serial.println(str);
+    curtime = millis();
+    Serial.println("[log]" + str);
 
     if (str != "" && str.startsWith(DATA_PREFIX)) {
         if (str.startsWith(DATA_PREFIX + " found")) {
-            M5.Lcd.fillScreen(RED);
-            balados.accelerate(250);
-            delay(1000);
-            balados.brake();
+            if (str.endsWith("center")) {
+                M5.Lcd.fillScreen(RED);
+                if (curtime - prevtime > 6000) {
+                    balados.accelerate(400);
+                    // balados.SetSpeed(400, 400);
+                    delay(1000);
+                    balados.brake();
+                    prevtime = curtime;
+                }
+            } else if (str.endsWith("left")) {
+                M5.Lcd.fillScreen(PURPLE);
+                rot(100, false);
+            } else if (str.endsWith("right")) {
+                M5.Lcd.fillScreen(ORANGE);
+                rot(100);
+            }
+        } else {
+            rot();
         }
         M5.Lcd.println(str);
-        M5.Lcd.println(time / 100);
+        M5.Lcd.println(curtime / 100);
+    } else {
+        M5.Lcd.println("[UNITV] no signal");
     }
 
     M5.update();
-    delay(500);
+    delay(100);
     i++;
 }

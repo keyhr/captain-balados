@@ -3,5 +3,5 @@
     "configuration": "FlashMode=qio,FlashFreq=80,PartitionScheme=default,UploadSpeed=921600,DebugLevel=none",
     "board": "esp32:esp32:m5stack-core-esp32",
     "output": "build",
-    "port": "/dev/tty.usbserial-020185B1"
+    "port": "/dev/tty.usbserial-01FBFE04"
 }
